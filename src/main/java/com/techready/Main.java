@@ -1,10 +1,18 @@
 package com.techready;
 
+import com.techready.exception.AppException;
 import com.techready.user.User;
 import com.techready.user.UserService;
 
 import static spark.Spark.*;
+import spark.ModelAndView;
+import spark.template.mustache.MustacheTemplateEngine;
 import com.google.gson.Gson;
+
+import java.security.InvalidParameterException;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class Main {
     public static void main(String[] args) {
@@ -17,6 +25,32 @@ public class Main {
             res.type("application/json");
             return gson.toJson("Server running correctly!");
         });
+
+        // MUSTACHE Routes
+        get("/", (req, res) -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("title", "Collectibles Store");
+            return new ModelAndView(model, "index.mustache");
+        }, new MustacheTemplateEngine());
+
+        get("/offers", (req, res) ->{
+            return new ModelAndView(new HashMap<>(), "offers.mustache");
+        }, new MustacheTemplateEngine());
+
+        post("/offers", (req, res) ->{
+            Map<String, Object> model = new HashMap<>();
+            String item = req.queryParams("item");
+            String price = req.queryParams("price");
+            String seller = req.queryParams("seller");
+
+            if (item == null || price == null || price.isBlank() || seller == null || seller.isBlank()) {
+                throw new InvalidParameterException("All fields are required!!");
+
+            }
+
+            model.put("message", "Offer added: "+ item +" - $" + price +"(by "+ seller +")");
+            return new ModelAndView(model, "offers.mustache");
+        }, new MustacheTemplateEngine());
 
 
 //      Routes
@@ -90,5 +124,20 @@ public class Main {
         });
 
         System.out.println("🚀 Spark server running at http://localhost:4567/hello");
+
+        // Error handling
+
+        exception(AppException.class, (e, req, res) -> {
+            res.status(500);
+            res.type("text/html");
+            res.body("<h2>Error:</h2><p>"+ e.getMessage() +"</p>");
+        });
+
+        exception(Exception.class, (e, req, res) -> {
+            res.status(500);
+            res.type("text/html");
+            res.body("<h2> Unexpected Error:</h2><p>"+ e.getMessage() +"</p>");
+        });
+
     }
 }

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Item Offers</title></head>
+    <body>
+        <h1>Create an Offer</h1>
+        <form action="/offers" method="post">
+            <label>Item:</label><input name="item" required><br>
+            <label>Price:</label><input name="price" required><br>
+            <label>Seller:</label><input name="seller" required><br>
+            <button type="submit">Submit</button>
+        </form>
+        {{#message}}<p>{{message}}</p>{{/message}}
+    </body>
+</html>

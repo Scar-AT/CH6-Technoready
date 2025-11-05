@@ -142,15 +142,30 @@ public class Main {
         // Error handling
 
         exception(AppException.class, (e, req, res) -> {
-            res.status(500);
+            res.status(400);
             res.type("text/html");
-            res.body("<h2>Error:</h2><p>"+ e.getMessage() +"</p>");
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("message", e.getMessage());
+
+            String html = new MustacheTemplateEngine().render(
+                    new ModelAndView(model, "error.mustache")
+            );
+            res.body(html);
         });
 
+        // handles all the unexpected exceptions
         exception(Exception.class, (e, req, res) -> {
             res.status(500);
             res.type("text/html");
-            res.body("<h2> Unexpected Error:</h2><p>"+ e.getMessage() +"</p>");
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("message", "An unexpected error occurred. Please try again later.");
+
+            String html = new MustacheTemplateEngine().render(
+                    new ModelAndView(model, "error.mustache")
+            );
+            res.body(html);
         });
 
     }

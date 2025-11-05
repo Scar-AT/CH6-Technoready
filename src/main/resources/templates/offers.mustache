@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Item Offers</title>
+    </head>
+    <body>
+        <h1>Create an Offer</h1>
+
+        <form action="/offers" method="post">
+            <label>Item:</label><input name="item" required><br>
+            <label>Price:</label><input name="price" required><br>
+            <label>Seller:</label><input name="seller" required><br>
+
+            <input type="hidden" name="simulateError" value="false">
+
+            <button type="submit">Submit</button>
+        </form>
+        {{#message}}
+            <p><b>{{message}}</b></p>
+        {{/message}}
+
+        <h2>All Offers</h2>
+        <ul>
+            {{#offers}}
+                <li>{{item}} - $ {{price}} (by {{seller}})</li>
+            {{/offers}}
+        </ul>
+    </body>
+</html>

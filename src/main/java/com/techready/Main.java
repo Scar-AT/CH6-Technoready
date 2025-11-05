@@ -1,22 +1,99 @@
 package com.techready;
 
+import com.techready.exception.AppException;
+import com.techready.exception.InvalidFormDataException;
 import com.techready.user.User;
+import com.techready.offer.Offer;
 import com.techready.user.UserService;
+import com.techready.offer.OfferService;
 
 import static spark.Spark.*;
+import spark.ModelAndView;
+import spark.template.mustache.MustacheTemplateEngine;
 import com.google.gson.Gson;
 
+import java.security.InvalidParameterException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) {
         port(4567);
         Gson gson = new Gson();
         UserService userService = new UserService();
+        OfferService offerService = new OfferService();
 
         // test route
         get("/hello", (req, res) -> {
             res.type("application/json");
             return gson.toJson("Server running correctly!");
         });
+
+        // MUSTACHE Routes
+        get("/", (req, res) -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("title", "Collectibles Store");
+            return new ModelAndView(model, "index.mustache");
+        }, new MustacheTemplateEngine());
+
+        get("/offers", (req, res) ->{
+            return new ModelAndView(new HashMap<>(), "offers.mustache");
+        }, new MustacheTemplateEngine());
+
+        get("/offers", (req, res) -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("offers", offerService.getAllOffers());
+            return new ModelAndView(model, "offers.mustache");
+        }, new   MustacheTemplateEngine());
+
+        post("/offers", (req, res) ->{
+            Map<String, Object> model = new HashMap<>();
+            String item = req.queryParams("item");
+            String price = req.queryParams("price");
+            String seller = req.queryParams("seller");
+            String simulateError = req.queryParams("simulateError");
+
+            logger.info("Recieved offer submission: item={}, price={}, seller={}", item, price, seller);
+
+
+            // manual error trigger (for tests)
+            if ("true".equalsIgnoreCase(simulateError)) {
+                throw new InvalidFormDataException("Simulated backend error triggered!");
+            }
+
+            // deeper valdation
+            if (!price.matches("\\d+(\\.\\d{1,2})?")){
+                throw new InvalidFormDataException("Price must be a valid number!");
+            }
+
+            // dupe items
+            boolean exists = offerService.getAllOffers()
+                                         .stream()
+                                         .anyMatch(o -> o.getItem().equalsIgnoreCase(item));
+            if (!exists) {
+                throw new InvalidFormDataException("An offer for '"+ item + "' already exists!");
+            }
+
+            /*if (item == null || price == null || price.isBlank() || seller == null || seller.isBlank()) {
+                throw new InvalidParameterException("All fields are required!!");
+
+            }*/
+
+            Offer offer = new Offer(item, price, seller);
+            offerService.addOffer(offer);
+            logger.info("Offer successfully added! {}", item);
+
+            Map<String, Object> modelMap = new HashMap<>();
+            model.put("offers", offerService.getAllOffers());
+            model.put("message", "Offer added: "+ item +" - $" + price +" (by "+ seller +") successfully!");
+            return new ModelAndView(model, "offers.mustache");
+        }, new MustacheTemplateEngine());
 
 
 //      Routes
@@ -90,5 +167,41 @@ public class Main {
         });
 
         System.out.println("🚀 Spark server running at http://localhost:4567/hello");
+
+        // Error handling
+
+        /*get("/test-error", (req, res) -> {
+            throw new AppException("This is a test error!");
+        });
+*/
+        exception(AppException.class, (e, req, res) -> {
+            logger.warn("App error {}", e.getMessage());
+            res.status(400);
+            res.type("text/html");
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("message", e.getMessage());
+
+            String html = new MustacheTemplateEngine().render(
+                    new ModelAndView(model, "error.mustache")
+            );
+            res.body(html);
+        });
+
+        // handles all the unexpected exceptions
+        exception(Exception.class, (e, req, res) -> {
+            logger.error("Unexpected server error", e);
+            res.status(500);
+            res.type("text/html");
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("message", "An unexpected error occurred. Please try again later.");
+
+            String html = new MustacheTemplateEngine().render(
+                    new ModelAndView(model, "error.mustache")
+            );
+            res.body(html);
+        });
+
     }
 }

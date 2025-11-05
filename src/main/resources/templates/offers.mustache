@@ -10,5 +10,12 @@
             <button type="submit">Submit</button>
         </form>
         {{#message}}<p>{{message}}</p>{{/message}}
+
+        <h2>All Offers</h2>
+        <ul>
+            {{#offers}}
+                <li>{{item}} - $ {{price}} (by {{seller}})</li>
+            {{/offers}}
+        </ul>
     </body>
 </html>

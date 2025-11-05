@@ -2,7 +2,9 @@ package com.techready;
 
 import com.techready.exception.AppException;
 import com.techready.user.User;
+import com.techready.offer.Offer;
 import com.techready.user.UserService;
+import com.techready.offer.OfferService;
 
 import static spark.Spark.*;
 import spark.ModelAndView;
@@ -19,6 +21,7 @@ public class Main {
         port(4567);
         Gson gson = new Gson();
         UserService userService = new UserService();
+        OfferService offerService = new OfferService();
 
         // test route
         get("/hello", (req, res) -> {
@@ -37,6 +40,12 @@ public class Main {
             return new ModelAndView(new HashMap<>(), "offers.mustache");
         }, new MustacheTemplateEngine());
 
+        get("/offers", (req, res) -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("offers", offerService.getAllOffers());
+            return new ModelAndView(model, "offers.mustache");
+        }, new   MustacheTemplateEngine());
+
         post("/offers", (req, res) ->{
             Map<String, Object> model = new HashMap<>();
             String item = req.queryParams("item");
@@ -48,7 +57,12 @@ public class Main {
 
             }
 
-            model.put("message", "Offer added: "+ item +" - $" + price +"(by "+ seller +")");
+            Offer offer = new Offer(item, price, seller);
+            offerService.addOffer(offer);
+
+            Map<String, Object> modelMap = new HashMap<>();
+            model.put("offers", offerService.getAllOffers());
+            model.put("message", "Offer added: "+ item +" - $" + price +" (by "+ seller +") sucessfully!");
             return new ModelAndView(model, "offers.mustache");
         }, new MustacheTemplateEngine());
 

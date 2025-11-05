@@ -7,8 +7,8 @@ public class UserService {
 
     // Constructor adds sample data
     public UserService() {
-        users.put(1, new User(1, "Alice", "alice@example.com"));
-        users.put(2, new User(2, "Bob", "bob@example.com"));
+        users.put(1, new User(1, "Scarlett", "scarlett@tts.com"));
+        users.put(2, new User(2, "Ana", "ana@tts.com"));
     }
 
     public List<User> getAllUsers() {

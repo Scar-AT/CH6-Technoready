@@ -12,6 +12,12 @@ public class Main {
         Gson gson = new Gson();
         UserService userService = new UserService();
 
+        // test route
+        get("/hello", (req, res) -> {
+            res.type("application/json");
+            return gson.toJson("Server running correctly!");
+        });
+
 
 //      Routes
 //          Retrieve all Users

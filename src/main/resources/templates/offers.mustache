@@ -26,4 +26,22 @@
             {{/offers}}
         </ul>
     </body>
+    <script>
+        const socket = new WebSocket("ws://localhost:4567/ws/price");
+
+        socket.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            const offerList = document.getElementById("offerList");
+
+            // update offer in the list dynamically
+            const li = document.createElement("li");
+            li.textContent = `${data.item} - $${data.price} (by ${data.seller})`;
+            offerList.appendChild(li);
+        };
+
+        function updatePrice(item, newPrice) {
+            socket.send(JSON.stringify({item, price: newPrice}));
+        }
+
+    </script>
 </html>

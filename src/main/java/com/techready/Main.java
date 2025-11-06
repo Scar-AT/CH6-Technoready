@@ -8,26 +8,42 @@ import com.techready.user.UserService;
 import com.techready.offer.OfferService;
 
 import static spark.Spark.*;
+
+import com.techready.websocket.PriceWebSocket;
 import spark.ModelAndView;
+import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 import com.google.gson.Gson;
 
 import java.security.InvalidParameterException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.eclipse.jetty.websocket.server.WebSocketHandler;
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import spark.embeddedserver.jetty.JettyServerFactory;
+import spark.embeddedserver.jetty.JettyHandler;
+
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
 
     public static void main(String[] args) {
         port(4567);
         Gson gson = new Gson();
         UserService userService = new UserService();
         OfferService offerService = new OfferService();
+
+        before((req, res) -> res.type(("text/html"));
+
+        // Register websocket endpoint
+        Spark.webSocket("/ws/price", PriceWebSocket.class);
+        Spark.init();
 
         // test route
         get("/hello", (req, res) -> {
@@ -51,6 +67,21 @@ public class Main {
             model.put("offers", offerService.getAllOffers());
             return new ModelAndView(model, "offers.mustache");
         }, new   MustacheTemplateEngine());
+
+        get("/offers", (req, res) -> {
+            String min = req.queryParams("min");
+            String max = req.queryParams("max");
+            String seller = req.queryParams("seller");
+
+            Double minVal = (min != null && !min.isBlank()) ? Double.parseDouble(min) : null;
+            Double maxVal = (max != null && !max.isBlank()) ? Double.parseDouble(max) : null;
+
+            List<Offer> filtered = offerService.filterOffers(minVal, maxVal, seller);
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("offers", filtered);
+            return new ModelAndView(model, "offers.mustache");
+        }, new MustacheTemplateEngine());
 
         post("/offers", (req, res) ->{
             Map<String, Object> model = new HashMap<>();

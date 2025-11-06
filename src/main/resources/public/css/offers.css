@@ -1,0 +1,128 @@
+/* offer page */
+body {
+    padding: 20px;
+}
+
+/* forms */
+form {
+    background: #f8fafc;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 1px solid #e2e8f0;
+}
+
+label {
+    display: inline-block;
+    width: 120px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 10px;
+}
+
+input[type="text"],
+input[type="number"] {
+    width: calc(100% - 140px);
+    margin-bottom: 15px;
+}
+
+/* create offer  */
+.create-form {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+/* filter form */
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    align-items: end;
+}
+
+.filter-form label {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.filter-form input {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Clear fliters button */
+form[style*="inline"] button {
+    background: #64748b;
+    margin-left: 10px;
+}
+
+form[style*="inline"] button:hover {
+    background: #475569;
+}
+
+
+.message-box {
+    background: #ecfdf5;
+    border-left: 4px solid #10b981;
+    padding: 16px;
+    border-radius: 8px;
+    margin: 20px 0;
+    color: #065f46;
+    font-weight: 500;
+}
+
+.filter-info {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 10px 0;
+    color: #92400e;
+}
+
+p b {
+    color: #3b82f6;
+}
+
+#offerList {
+    list-style: none;
+    padding: 0;
+}
+
+#offerList li {
+    background: white;
+    padding: 20px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+    color: #1e293b;
+}
+
+#offerList li:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    transform: translateX(4px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    label {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        width: 100%;
+    }
+}

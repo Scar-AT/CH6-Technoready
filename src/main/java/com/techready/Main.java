@@ -35,15 +35,19 @@ public class Main {
 
     public static void main(String[] args) {
         port(4567);
+        staticFiles.location("/public");
+
         Gson gson = new Gson();
         UserService userService = new UserService();
         OfferService offerService = new OfferService();
 
-        before((req, res) -> res.type(("text/html"));
-
         // Register websocket endpoint
         Spark.webSocket("/ws/price", PriceWebSocket.class);
         Spark.init();
+
+        before((req, res) -> {
+            res.type(("text/html"));
+        });
 
         // test route
         get("/hello", (req, res) -> {
@@ -58,30 +62,49 @@ public class Main {
             return new ModelAndView(model, "index.mustache");
         }, new MustacheTemplateEngine());
 
-        get("/offers", (req, res) ->{
-            return new ModelAndView(new HashMap<>(), "offers.mustache");
-        }, new MustacheTemplateEngine());
-
-        get("/offers", (req, res) -> {
-            Map<String, Object> model = new HashMap<>();
-            model.put("offers", offerService.getAllOffers());
-            return new ModelAndView(model, "offers.mustache");
-        }, new   MustacheTemplateEngine());
-
         get("/offers", (req, res) -> {
             String min = req.queryParams("min");
             String max = req.queryParams("max");
             String seller = req.queryParams("seller");
+            String item = req.queryParams("item");
 
-            Double minVal = (min != null && !min.isBlank()) ? Double.parseDouble(min) : null;
-            Double maxVal = (max != null && !max.isBlank()) ? Double.parseDouble(max) : null;
+            Double minVal = null;
+            Double maxVal = null;
+            String errorMsg = null;
 
-            List<Offer> filtered = offerService.filterOffers(minVal, maxVal, seller);
+            try {
+                if (min != null && !min.isBlank()) {
+                    minVal = Double.parseDouble(min);
+                }
+            } catch (NumberFormatException e) {
+                errorMsg = "Invalid minimum price format.";
+            }
 
+            try {
+                if (max != null && !max.isBlank()) {
+                    maxVal = Double.parseDouble(max);
+                }
+            } catch (NumberFormatException e) {
+                errorMsg = "Invalid maximum price format.";
+            }
+
+            // 🔹 Use filters if any value was given, otherwise list all
+            List<Offer> filteredOffers = offerService.filterOffers(minVal, maxVal, seller, item);
             Map<String, Object> model = new HashMap<>();
-            model.put("offers", filtered);
+
+            model.put("offers", filteredOffers);
+            model.put("message", errorMsg != null ? errorMsg : "Showing filtered offers");
+
+            // 🔹 Persist filter values in form
+            model.put("itemFilter", item);
+            model.put("minFilter", min);
+            model.put("maxFilter", max);
+            model.put("sellerFilter", seller);
+
             return new ModelAndView(model, "offers.mustache");
         }, new MustacheTemplateEngine());
+
+
 
         post("/offers", (req, res) ->{
             Map<String, Object> model = new HashMap<>();
@@ -105,10 +128,10 @@ public class Main {
 
             // dupe items
             boolean exists = offerService.getAllOffers()
-                                         .stream()
-                                         .anyMatch(o -> o.getItem().equalsIgnoreCase(item));
-            if (!exists) {
-                throw new InvalidFormDataException("An offer for '"+ item + "' already exists!");
+                    .stream()
+                    .anyMatch(o -> o.getItem().equalsIgnoreCase(item));
+            if (exists) {
+                throw new InvalidFormDataException("An offer for '" + item + "' already exists!");
             }
 
             /*if (item == null || price == null || price.isBlank() || seller == null || seller.isBlank()) {

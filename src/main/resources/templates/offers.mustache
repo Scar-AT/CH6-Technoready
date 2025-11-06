@@ -2,28 +2,130 @@
 <html>
     <head>
         <title>Item Offers</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/css/styles.css">
+        <link rel="stylesheet" href="/css/offers.css">
     </head>
     <body>
-        <h1>Create an Offer</h1>
+        <div class="container">
+            <h1>🛍️ Create an Offer</h1>
 
-        <form action="/offers" method="post">
-            <label>Item:</label><input name="item" required><br>
-            <label>Price:</label><input name="price" required><br>
-            <label>Seller:</label><input name="seller" required><br>
+            <!-- Create Offer Form -->
+            <form action="/offers" method="post" class="create-form">
+                <label>Item:</label><input name="item" required type="text"><br>
+                <label>Price:</label><input name="price" required type="text"><br>
+                <label>Seller:</label><input name="seller" required type="text"><br>
 
-            <input type="hidden" name="simulateError" value="false">
+                <input type="hidden" name="simulateError" value="false">
 
-            <button type="submit">Submit</button>
-        </form>
-        {{#message}}
-            <p><b>{{message}}</b></p>
-        {{/message}}
+                <button type="submit">✨ Submit Offer</button>
+            </form>
 
-        <h2>All Offers</h2>
-        <ul>
-            {{#offers}}
-                <li>{{item}} - $ {{price}} (by {{seller}})</li>
-            {{/offers}}
-        </ul>
+            {{#message}}
+                <div class="message-box">
+                    <b>{{message}}</b>
+                </div>
+            {{/message}}
+
+            <hr>
+
+            <!-- Filter Form -->
+            <h2>🔍 Filter Offers</h2>
+            <form action="/offers" method="get">
+                <div class="filter-form">
+                    <div>
+                        <label>Item:</label>
+                        <input type="text" name="item" placeholder="e.g. Keyboard" value="{{itemFilter}}">
+                    </div>
+
+                    <div>
+                        <label>Min Price:</label>
+                        <input type="number" name="min" step="0.01" value="{{minFilter}}" placeholder="$0.00">
+                    </div>
+
+                    <div>
+                        <label>Max Price:</label>
+                        <input type="number" name="max" step="0.01" value="{{maxFilter}}" placeholder="$999.99">
+                    </div>
+
+                    <div>
+                        <label>Seller:</label>
+                        <input type="text" name="seller" placeholder="e.g. Amazon" value="{{sellerFilter}}">
+                    </div>
+                </div>
+
+                <div class="filter-buttons">
+                    <button type="submit">🔎 Apply Filter</button>
+                    <button type="button" onclick="location.href='/offers'">🔄 Clear Filters</button>
+                </div>
+            </form>
+
+            <hr>
+
+            <!-- Filter feedback message -->
+            {{#itemFilter}}
+                <div class="filter-info">
+                    Currently filtering results for <b>{{itemFilter}}</b>.
+                </div>
+            {{/itemFilter}}
+
+            {{#sellerFilter}}
+                <div class="filter-info">
+                    Filtered by seller: <b>{{sellerFilter}}</b>.
+                </div>
+            {{/sellerFilter}}
+
+            {{#minFilter}}
+                <div class="filter-info">
+                    Minimum price: <b>${{minFilter}}</b>
+                </div>
+            {{/minFilter}}
+
+            {{#maxFilter}}
+                <div class="filter-info">
+                    Maximum price: <b>${{maxFilter}}</b>
+                </div>
+            {{/maxFilter}}
+
+            <hr>
+
+            <!-- Offers List -->
+            <h2>📋 All Offers</h2>
+            <ul id="offerList">
+                {{#offers}}
+                    <li>🏷️ {{item}} - <b>${{price}}</b> (by {{seller}})</li>
+                {{/offers}}
+                {{^offers}}
+                    <li style="text-align: center; color: #64748b;">No offers found.</li>
+                {{/offers}}
+            </ul>
+        </div>
+
+        <script>
+            const socket = new WebSocket("ws://localhost:4567/ws/price");
+
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                const offerList = document.getElementById("offerList");
+                const li = document.createElement("li");
+                li.innerHTML = `🏷️ ${data.item} - <b>$${data.price}</b> (by ${data.seller})`;
+                offerList.appendChild(li);
+            };
+
+            function updatePrice(item, newPrice) {
+                socket.send(JSON.stringify({ item, price: newPrice }));
+            }
+
+            // Clean query parameters before submitting filters
+            document.querySelector('form[action="/offers"][method="get"]').addEventListener('submit', function (e) {
+                const inputs = this.querySelectorAll('input');
+                inputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        input.removeAttribute('name');
+                    }
+                });
+            });
+        </script>
     </body>
 </html>

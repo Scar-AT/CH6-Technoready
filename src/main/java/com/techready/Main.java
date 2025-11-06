@@ -8,26 +8,46 @@ import com.techready.user.UserService;
 import com.techready.offer.OfferService;
 
 import static spark.Spark.*;
+
+import com.techready.websocket.PriceWebSocket;
 import spark.ModelAndView;
+import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 import com.google.gson.Gson;
 
 import java.security.InvalidParameterException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.eclipse.jetty.websocket.server.WebSocketHandler;
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import spark.embeddedserver.jetty.JettyServerFactory;
+import spark.embeddedserver.jetty.JettyHandler;
+
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+
     public static void main(String[] args) {
         port(4567);
+        staticFiles.location("/public");
+
         Gson gson = new Gson();
         UserService userService = new UserService();
         OfferService offerService = new OfferService();
+
+        // Register websocket endpoint
+        Spark.webSocket("/ws/price", PriceWebSocket.class);
+        Spark.init();
+
+        before((req, res) -> {
+            res.type(("text/html"));
+        });
 
         // test route
         get("/hello", (req, res) -> {
@@ -42,15 +62,49 @@ public class Main {
             return new ModelAndView(model, "index.mustache");
         }, new MustacheTemplateEngine());
 
-        get("/offers", (req, res) ->{
-            return new ModelAndView(new HashMap<>(), "offers.mustache");
+        get("/offers", (req, res) -> {
+            String min = req.queryParams("min");
+            String max = req.queryParams("max");
+            String seller = req.queryParams("seller");
+            String item = req.queryParams("item");
+
+            Double minVal = null;
+            Double maxVal = null;
+            String errorMsg = null;
+
+            try {
+                if (min != null && !min.isBlank()) {
+                    minVal = Double.parseDouble(min);
+                }
+            } catch (NumberFormatException e) {
+                errorMsg = "Invalid minimum price format.";
+            }
+
+            try {
+                if (max != null && !max.isBlank()) {
+                    maxVal = Double.parseDouble(max);
+                }
+            } catch (NumberFormatException e) {
+                errorMsg = "Invalid maximum price format.";
+            }
+
+            // 🔹 Use filters if any value was given, otherwise list all
+            List<Offer> filteredOffers = offerService.filterOffers(minVal, maxVal, seller, item);
+            Map<String, Object> model = new HashMap<>();
+
+            model.put("offers", filteredOffers);
+            model.put("message", errorMsg != null ? errorMsg : "Showing filtered offers");
+
+            // 🔹 Persist filter values in form
+            model.put("itemFilter", item);
+            model.put("minFilter", min);
+            model.put("maxFilter", max);
+            model.put("sellerFilter", seller);
+
+            return new ModelAndView(model, "offers.mustache");
         }, new MustacheTemplateEngine());
 
-        get("/offers", (req, res) -> {
-            Map<String, Object> model = new HashMap<>();
-            model.put("offers", offerService.getAllOffers());
-            return new ModelAndView(model, "offers.mustache");
-        }, new   MustacheTemplateEngine());
+
 
         post("/offers", (req, res) ->{
             Map<String, Object> model = new HashMap<>();
@@ -74,10 +128,10 @@ public class Main {
 
             // dupe items
             boolean exists = offerService.getAllOffers()
-                                         .stream()
-                                         .anyMatch(o -> o.getItem().equalsIgnoreCase(item));
-            if (!exists) {
-                throw new InvalidFormDataException("An offer for '"+ item + "' already exists!");
+                    .stream()
+                    .anyMatch(o -> o.getItem().equalsIgnoreCase(item));
+            if (exists) {
+                throw new InvalidFormDataException("An offer for '" + item + "' already exists!");
             }
 
             /*if (item == null || price == null || price.isBlank() || seller == null || seller.isBlank()) {

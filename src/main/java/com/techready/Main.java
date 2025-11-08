@@ -129,9 +129,12 @@ public class Main {
             // dupe items
             boolean exists = offerService.getAllOffers()
                     .stream()
-                    .anyMatch(o -> o.getItem().equalsIgnoreCase(item));
+                    .anyMatch(o -> o.getItem().equalsIgnoreCase(item)
+                            && o.getSeller().equalsIgnoreCase(seller));
             if (exists) {
-                throw new InvalidFormDataException("An offer for '" + item + "' already exists!");
+                throw new InvalidFormDataException(
+                        "An offer for '" + item + "' from seller '" + seller + "' already exists!"
+                );
             }
 
             /*if (item == null || price == null || price.isBlank() || seller == null || seller.isBlank()) {

@@ -129,9 +129,12 @@ public class Main {
             // dupe items
             boolean exists = offerService.getAllOffers()
                     .stream()
-                    .anyMatch(o -> o.getItem().equalsIgnoreCase(item));
+                    .anyMatch(o -> o.getItem().equalsIgnoreCase(item)
+                            && o.getSeller().equalsIgnoreCase(seller));
             if (exists) {
-                throw new InvalidFormDataException("An offer for '" + item + "' already exists!");
+                throw new InvalidFormDataException(
+                        "An offer for '" + item + "' from seller '" + seller + "' already exists!"
+                );
             }
 
             /*if (item == null || price == null || price.isBlank() || seller == null || seller.isBlank()) {
@@ -219,6 +222,14 @@ public class Main {
 
             return gson.toJson("USER DELETED!");
         });
+
+        get("/users-view", (req, res) -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("users", userService.getAllUsers());
+            return new ModelAndView(model, "users-view.mustache");
+        }, new MustacheTemplateEngine());
+
+
 
         System.out.println("🚀 Spark server running at http://localhost:4567/hello");
 

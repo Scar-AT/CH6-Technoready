@@ -1,6 +1,7 @@
 # 🧩 CH6 – Collectibles Store API
 
-
+A lightweight web application built with **Java**, **Spark**, and **Mustache** for managing users and item offers.  
+It demonstrates modular backend design, view rendering, form handling, and structured exception management — all with integrated logging for easy debugging and maintenance.
 
 ---
 
@@ -34,6 +35,8 @@ The goal is to build an **API service** that supports basic user operations and 
 - Logback 1.4.14
 
 - Postman (API testing)
+
+- Mustache 2.7.1
 
 ---
 
@@ -91,9 +94,21 @@ The goal is to build an **API service** that supports basic user operations and 
 
 ---
 
+## Views and Offer Management
+The project includes a Mustache-based frontend for managing collectible item offers.
+
+### Routes
+| Method   | Endpoint           | Description                                         |
+|:---------| :------------------|:----------------------------------------------------|
+| **GET**  | `/`                | Landing page                                        |
+| **GET**  |`/offers`           | Displays form and list of offers                    |
+| **POST** |`/offers`           | Validates and adds a new offer                      |
+| **Error**| (handled globally) | Renders a friendly error page when exceptions ocurr |
+
+
+---
 ### Testing the API
 Use **postman** or **curl** to verify each route
-
 
 
 | Test | Method  | Endpoint   | Example Body                                       | Expected Response     |
@@ -106,19 +121,77 @@ Use **postman** or **curl** to verify each route
 | 6    | DELETE  | `/users/3` | —                                                  | “USER DELETED!”       |
 
 ---
+## 🧠 Form Behavior and Validation
 
+**Client-side**
+
+- HTML required fields prevent blank submissions.
+
+**Server-side**
+
+- Invalid price format triggers a custom validation exception.
+
+- Duplicate offers are rejected with a clear message.
+
+- Manual error simulation (simulateError=true) can be used for testing.
+
+**Error Rendering**
+
+- All exceptions are handled through Spark’s global exception() method.
+
+- A Mustache template (error.mustache) provides a user-friendly display.
+
+
+---
+
+## Logging
+
+Implemented with SLF4J + Logback, logging key actions and validation errors for better visibility.
+
+### Sample output
+````bash
+15:27:41.113 [qtp181812446-14] INFO  com.techready.Main - Received offer submission: item=Laptop, price=1200, seller=Scarlett
+15:27:42.002 [qtp181812446-14] ERROR com.techready.Main - Invalid price format received: abc
+15:27:43.409 [qtp181812446-14] WARN  com.techready.Main - Simulated backend error triggered by user input.
+````
+Logs record successful actions, user input, validation errors and server exceptions.
+
+---
+## Modules and File structure
+| Path                        | Description                                |
+|:----------------------------|:-------------------------------------------|
+| `com.techready.Main`        | Entry point and route configuration        |
+| `com.techready.user.*`      | User model and CRUD service                |
+| `com.techready.offer.*`     | Offer model and service logic              |
+| `com.techready.exception.*` | Custom exception classes                   |
+| `templates/`                | Mustache views (`index`, `offers`, `error`)|
+| `logback.xml`               | Logging configuration                      |
+
+
+
+---
 ## Project Structure
 
-````
+````pgsql
 CH6-Technoready/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/techready/
 │   │   │   ├── Main.java
-│   │   │   └── user/
-│   │   │       ├── User.java
-│   │   │       └── UserService.java
+│   │   │   ├── user/
+│   │   │   │   ├── User.java
+│   │   │   │   └── UserService.java
+│   │   │   ├── offer/
+│   │   │   │   ├── Offer.java
+│   │   │   │   └── OfferService.java
+│   │   │   └── exception/
+│   │   │       ├── AppException.java
+│   │   │       └── InvalidFormDataException.java
 │   │   └── resources/
+│   │       ├── templates/
+│   │       │   ├── index.mustache
+│   │       │   ├── offers.mustache
+│   │       │   └── error.mustache
 │   │       └── logback.xml
 │   └── test/        # optional
 ├── pom.xml

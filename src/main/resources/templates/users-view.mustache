@@ -1,41 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Registered Users</title>
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/users.css" />
-</head>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Registered Users</title>
+        <link rel="stylesheet" href="/css/styles.css" />
+        <link rel="stylesheet" href="/css/users.css" />
+    </head>
 
-<body>
-<div class="container">
-    <h1>👥 Registered Users</h1>
+    <body>
+        <div class="container">
+            <h1>👥 Registered Users</h1>
 
-    <table border="1" cellpadding="8">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#users}}
-            <tr>
-                <td>{{id}}</td>
-                <td>{{name}}</td>
-                <td>{{email}}</td>
-            </tr>
-        {{/users}}
-        {{^users}}
-            <tr>
-                <td colspan="3" style="text-align:center;">No users found.</td>
-            </tr>
-        {{/users}}
-        </tbody>
-    </table>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#users}}
+                    <tr>
+                        <td>{{id}}</td>
+                        <td>{{name}}</td>
+                        <td>{{email}}</td>
+                    </tr>
+                {{/users}}
+                {{^users}}
+                    <tr>
+                        <td colspan="3">No users found.</td>
+                    </tr>
+                {{/users}}
+                </tbody>
+            </table>
 
-    <a href="/" style="display:block;margin-top:1rem;">← Back to Home</a>
-</div>
-</body>
+            <a href="/">← Back to Home</a>
+        </div>
+    </body>
 </html>

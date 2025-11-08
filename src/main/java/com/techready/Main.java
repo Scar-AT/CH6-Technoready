@@ -220,6 +220,14 @@ public class Main {
             return gson.toJson("USER DELETED!");
         });
 
+        get("/users-view", (req, res) -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("users", userService.getAllUsers());
+            return new ModelAndView(model, "users-view.mustache");
+        }, new MustacheTemplateEngine());
+
+
+
         System.out.println("🚀 Spark server running at http://localhost:4567/hello");
 
         // Error handling

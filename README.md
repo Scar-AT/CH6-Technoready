@@ -1,13 +1,15 @@
 # 🧩 CH6 – Collectibles Store API
 
 A lightweight web application built with **Java**, **Spark**, and **Mustache** for managing users and item offers.  
-It demonstrates modular backend design, view rendering, form handling, and structured exception management — all with integrated logging for easy debugging and maintenance.
+It features dynamic data filtering, real-time updates via WebSockets, form validation, and robust exception handling — all structured with modular Java classes and integrated logging through SLF4J + Logback.
 
 ---
 
 ## 🚀 Project Overview
 
 The goal is to build an **API service** that supports basic user operations and demonstrates good backend practices using Spark, Gson, and Logback.
+It offers an interactive and reliable platform to manage users and product offers in real time.
+
 
 | Sprint | Focus | Technologies |
 |:--|:--|:--|
@@ -26,44 +28,37 @@ The goal is to build an **API service** that supports basic user operations and 
 
 ### 🧩 Technologies Used
 
-- Java 17 + Spark 2.9.4
+- **Java 17** + **Spark 2.9.4**
+- **Mustache 2.7.1**
+- **Gson 2.11.0**
+- **Logback 1.4.14**
+- **WebSockets (Jetty)**
+- **Postman** (for API testing)
 
-- Maven
-
-- Gson 2.11.0
-
-- Logback 1.4.14
-
-- Postman (API testing)
-
-- Mustache 2.7.1
 
 ---
 
 ### 🧩 Steps
 
 1. **Clone the repository**
-    ````bash
-      git clone https://github.com/Scar-AT/CH6-Technoready.git
-      cd CH6-Technoready
-    ````
+    ```bash
+    git clone https://github.com/Scar-AT/CH6-Technoready.git
+    cd CH6-Technoready
+    ```
 
 2. **Compile the project**
-    ````bash
-      mvn clean install
-    ````
+    ```bash
+    mvn clean install
+    ```
     
 3. **Run the server**
+    ```bash
+    mvn exec:java -Dexec.mainClass="com.techready.Main"
+    ```
 
-- In IntelliJ → right-click  `Main.java` → Run  `Main.main()`
-- Or via terminal:
-    ````bash
-      mvn exec:java -Dexec.mainClass="com.techready.Main"
-    ````
-
-4. **Access the API**
-- Base URL: http://localhost:4567
-- Health check: http://localhost:4567/hello
+4. **Access the app**
+   - Base URL → [http://localhost:4567](http://localhost:4567)
+   - Health check → [http://localhost:4567/hello](http://localhost:4567/hello)
 
 ---
 ### API Endpoints
@@ -100,11 +95,15 @@ The project includes a Mustache-based frontend for managing collectible item off
 ### Routes
 | Method   | Endpoint           | Description                                         |
 |:---------| :------------------|:----------------------------------------------------|
-| **GET**  | `/`                | Landing page                                        |
 | **GET**  |`/offers`           | Displays form and list of offers                    |
-| **POST** |`/offers`           | Validates and adds a new offer                      |
+| **POST** |`/offers`           | Add a new offer                                     |
 | **Error**| (handled globally) | Renders a friendly error page when exceptions ocurr |
 
+#### Filters
+Supports query parameters:
+```
+/offers?item=Keyboard&seller=Amazon&min=100&max=300
+```
 
 ---
 ### Testing the API
@@ -170,9 +169,9 @@ Logs record successful actions, user input, validation errors and server excepti
 
 
 ---
-## Project Structure
+## 🧩 Project Structure
 
-````pgsql
+```plaintext
 CH6-Technoready/
 ├── src/
 │   ├── main/
@@ -184,16 +183,21 @@ CH6-Technoready/
 │   │   │   ├── offer/
 │   │   │   │   ├── Offer.java
 │   │   │   │   └── OfferService.java
-│   │   │   └── exception/
-│   │   │       ├── AppException.java
-│   │   │       └── InvalidFormDataException.java
+│   │   │   ├── exception/
+│   │   │   │   ├── AppException.java
+│   │   │   │   ├── InvalidFormDataException.java
+│   │   │   │   └── UserNotFoundException.java
+│   │   │   └── websocket/
+│   │   │       └── PriceWebSocket.java
 │   │   └── resources/
 │   │       ├── templates/
 │   │       │   ├── index.mustache
 │   │       │   ├── offers.mustache
+│   │       │   ├── users-view.mustache
 │   │       │   └── error.mustache
+│   │       ├── public/css/users.css
 │   │       └── logback.xml
-│   └── test/        # optional
+│   └── test/
 ├── pom.xml
 └── README.md
-````
+```
